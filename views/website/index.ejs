@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Sign Up | Log In</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  </head>
+  <body>
+
+   <!-- <nav>
+      <ul class="menu">
+         <li><a href="#" class="active">Home</a></li>
+         <li><a href="#">About</a></li>
+         <li><a href="#">Portfolio</a></li>
+         <li><a href="#">Contact</a></li>
+         <li class="slider"></li>
+      </ul>
+   </nav> -->
+   
+   <% if(errorMessage) { %>
+      <div class="user-message user-message--error"><%= errorMessage %></div>
+   <% } %>
+<div class="loginParent">
+   <div class="loginPhoto"><img src="../../public/SDR-device.png" alt="kkk"/></div>
+    <div class="wrapper">
+       <div class="title-text">
+          <div class="title login">
+             Account 
+          </div>
+          <div class="title signup">
+             Account
+          </div>
+       </div>
+       <div class="form-container">
+          <div class="slide-controls">
+             <input type="radio" name="slide" id="login" checked>
+             <input type="radio" name="slide" id="signup">
+             <label for="login" class="slide login">Login</label>
+             <label for="signup" class="slide signup">SignUp</label>
+             <div class="slider-tab"></div>
+          </div>
+          <div class="form-inner">
+             <form action="/login" class="login" method="POST">
+                <div class="field">
+                   <input type="text" placeholder="Email" name="email" value="<%= oldInput.email %>" required>
+                </div>
+                <div class="field">
+                   <input type="password" placeholder="Password" name="password" value="<%= oldInput.password %>" required>
+                </div>
+                <div class="pass-link">
+                   <a href="#">Reset password?</a>
+                </div>
+                <div class="field btn">
+                   <div class="btn-layer"></div>
+                   <input type="submit" value="Login">
+                </div>
+                <div class="signup-link">
+                   Don't Have Account? <a href="">Create A New</a>
+                </div>
+             </form>
+             <form action="/signup" class="signup" method="POST">
+                <div class="field">
+                   <input type="text" placeholder="Email" name="email" value="<%= oldInput.email %>" required>
+                </div>
+                <div class="field">
+                   <input type="password" placeholder="Password" name="password" value="<%= oldInput.password %>" required>
+                </div>
+                <div class="field">
+                   <input type="password" placeholder="Confirm Password" name="confirmPassword" value="<%= oldInput.confirmPassword %>" required>
+                </div>
+                <div class="field btn">
+                   <div class="btn-layer"></div>
+                   <input type="submit" value="SignUp">
+                </div>
+             </form>
+          </div>
+       </div>
+    </div>
+   </div>
+    <script src="/js/style.js"></script>
+  </body>
+</html>

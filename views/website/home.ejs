@@ -1,0 +1,57 @@
+<%- include('../includes/head.ejs') %>
+<link rel="stylesheet" href="/css/home.css">
+</head>
+
+<body>
+  <%- include('../includes/navbar.ejs') %>
+
+
+  <div>
+    <h2>Sensors</h2>
+    <% if(sensors.length > 0) { %>
+    <ul>
+      <% sensors.forEach(s => {  %>
+        <li><p><%= s.sensorId.title %></p></li>
+        <form action="/user-delete-sensor" method="POST">
+          <input type="hidden" value="<%= s.sensorId._id %>" name="sensorId">
+          <button class="btn" type="submit">Delete Sensor</button>
+      </form>
+      <% }) %>
+    </ul>
+    <% } else { %>
+      <p>You don't have any sensors</p>
+    <% } %>
+    <h3>Request to add sensor</h3>
+    <form action="/user-add-sensor" method="POST">
+      <input type="text" placeholder="Add Sensor ID" name="sensorId">
+      <button class="btn" type="submit">Add Sensor</button>
+  </form>
+  </div>
+
+  
+  <div>
+    <h2>Home Friends</h2>
+    <% if(homeFriends.length > 0) { %>
+    <ul>
+      <% homeFriends.forEach(hf => {  %>
+        <li><p><%= hf.name %></p></li>
+        <form action="/deletehomefriend" method="POST">
+          <button type="submit">Remove Friend</button>
+          <input type="hidden" value="<%= hf._id %>" name="friendId">
+        </form>
+      <% }) %>
+    </ul>
+    <% } else { %>
+      <p>You don't have any home friends</p>
+    <% } %>
+
+
+    <h3>Add Home Friends</h3>
+    <form action="/addhomefriend" method="post">
+      <input type="text" placeholder="Add Friend ID" name="friendId">
+      <button class="btn" type="submit">Add Friend</button>
+  </form>
+  </div>
+
+
+</body>
