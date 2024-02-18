@@ -5,8 +5,9 @@ const Sensor = require('../models/sensor');
 
 exports.getIndex = (req, res, next) => {
     res.render('website/index',{
+        name: "yousses",
         errorMessage: null,
-        oldInput: {email: "", password: ""},
+        oldInput: {email: "", password: ""}, 
         validationErrors: []
     });
 }
