@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8">
     <title>Sign Up | Log In</title>
+    <link rel="stylesheet" href="/css/tailwind.css">
     <link rel="stylesheet" href="/css/style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   </head>
@@ -19,11 +20,12 @@
    </nav> -->
    
    <% if(errorMessage) { %>
-      <div class="user-message user-message--error"><%= errorMessage %></div>
+      <div class="user-message user-message--error"><%= errorMessage %></div>  
    <% } %>
-<div class="loginParent">
-   <div class="loginPhoto"><img src="../../public/SDR-device.png" alt="kkk"/></div>
-    <div class="wrapper">
+<div class="pewpew static bg-black">
+   <div class="absolute top-0 left-0 w-8/12 h-80 pb-10"><img class="" src="/sdr.png" alt="kkk"/>
+   <p class="font-extrabold text-3xl text-blue-400 ml-96">Be Safe</p></div>
+    <div class="wrapper absolute top-12 right-10">
        <div class="title-text">
           <div class="title login">
              Account 

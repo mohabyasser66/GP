@@ -14,7 +14,7 @@ body{
   height: 100%;
   width: 100%;
   place-items: center;
-  background: -webkit-linear-gradient(left, rgb(27, 26, 26),#7395ae);
+  background: -webkit-linear-gradient(left,#000,#000);
   position: relative;
   min-width: 1300px;
 }
@@ -25,7 +25,7 @@ body{
 .wrapper{
   overflow: hidden;
   max-width: 390px;
-  background: #fff;
+  background: #71717a;
   padding: 30px;
   border-radius: 5px;
   box-shadow: 0px 15px 20px rgba(0,0,0,0.1);

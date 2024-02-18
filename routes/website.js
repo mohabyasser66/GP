@@ -6,7 +6,7 @@ const websiteController = require('../controllers/website');
 const isAuth = require('../middleware/is-auth');
 
 
-router.get('/', websiteController.getIndex);
+router.get('/', websiteController.getIndex); 
 
 router.get('/home', isAuth,websiteController.getHome);
 
