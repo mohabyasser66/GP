@@ -7,7 +7,7 @@ const request = require('request');
 
 exports.getHomefriends = async (req, res, next) => {
   let hf = [];
-  const user = await User.findById(req.userId);
+  const user = await User.findById(req.body.userId);
     if(!user){
       const error = new Error('A user with this email could not be found');
       error.statusCode = 401;
@@ -32,7 +32,7 @@ exports.getHomefriends = async (req, res, next) => {
 
 exports.postAddHomeFriend = async (req,res,next) => {
     const friendId = req.body.friendId;
-    const user = await User.findById(req.userId);
+    const user = await User.findById(req.body.userId);
     if(!user){
       const error = new Error('A user with this email could not be found');
       error.statusCode = 404;
@@ -65,20 +65,25 @@ exports.postAddHomeFriend = async (req,res,next) => {
 
 exports.postDeleteHomeFriend = async (req,res,next) => {
   const friendId = req.body.friendId;
-  const user = await User.findById(req.userId);
+  const user = await User.findById(req.body.userId);
     if(!user){
       const error = new Error('A user with this email could not be found');
       error.statusCode = 401;
       throw error;
     }
-  await user.removeHomeFriend(friendId);
+  // await user.removeHomeFriend(friendId);
+  const updatedHomeFriends = user.homeFriends.filter(hm => {
+    return hm._id.toString() !== friendId.toString();
+  });
+  user.homeFriends = updatedHomeFriends;
+  await user.save();
   res.status(200).json({
       message: 'Home friend removed.'
   });
 }
 
 exports.postaddSensor = async (req,res,next) => {
-  const user = await User.findById(req.userId);
+  const user = await User.findById(req.body.userId);
   if(!user){
     const error = new Error('A user with this email could not be found');
     error.statusCode = 401;
@@ -109,12 +114,12 @@ exports.postaddSensor = async (req,res,next) => {
 exports.postdeleteSensor = async (req,res,next) => {
   const sensorId = req.body.sensorId;
   const sensor = await UserSensors.findOne({ sensorId: sensorId });
-  if(req.userId !== sensor.userId.toString()){
-    return res.status(404).json({
-      message: "not your sensor"
-    });
-  }
-  const user = await User.findById(req.userId);
+  // if(req.userId !== sensor.userId.toString()){
+  //   return res.status(404).json({
+  //     message: "not your sensor"
+  //   });
+  // }
+  const user = await User.findById(req.body.userId);
   if(!user){
     const error = new Error('A user with this email could not be found');
     error.statusCode = 401;
@@ -139,18 +144,22 @@ exports.postdeleteSensor = async (req,res,next) => {
 
 exports.getSensorData = async (req,res,next) => {
   const sensorId = req.body.sensorId;
-  const sensor = await UserSensors.findOne({ sensorId: sensorId });
-  if(req.userId === sensor.userId.toString()){
-    const allData = await SensorData.find({sensorId : sensorId });
-    res.status(200).json({
-      data: allData
-    });
-  }
-  else{
-    res.status(401).json({
-      message: 'Not your sensor'
-    });
-  }
+  // const sensor = await UserSensors.findOne({ sensorId: sensorId });
+  const allData = await SensorData.find({sensorId : sensorId });
+  res.status(200).json({
+    data: allData
+  });
+  // if(req.userId === sensor.userId.toString()){
+  //   const allData = await SensorData.find({sensorId : sensorId });
+  //   res.status(200).json({
+  //     data: allData
+  //   });
+  // }
+  // else{
+  //   res.status(401).json({
+  //     message: 'Not your sensor'
+  //   });
+  // }
 }
 
 exports.receiveFlameSensor = async (req,res,next) => {

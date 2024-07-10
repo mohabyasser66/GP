@@ -10,8 +10,8 @@ const isAuth = require('../middleware/is-auth');
 
 
 router.post('/login', [
-    body('email').isEmail().withMessage('please enter a valid email address').normalizeEmail(),
-    body('password','Password has to be valid').isLength({min:5}).isAlphanumeric().trim()
+    body('email').isEmail().withMessage('please enter a valid email address'),
+    body('password','Password has to be valid').isLength({min:5}).isAlphanumeric()
 ] ,authController.login);
 
 
@@ -32,8 +32,8 @@ router.put('/signup',[
       .isEmpty()
 ], authController.signup);
 
-router.post('/logout',authController.logout);
+// router.post('/logout',authController.logout);
 
-router.post('/fcm-token', isAuth, authController.FCMToken);
+// router.post('/fcm-token', isAuth, authController.FCMToken);
 
 module.exports = router;

@@ -8,18 +8,18 @@ const { body } = require("express-validator");
 const router = express.Router();
 
 
-router.get('/sensors', isAuth, restrictTo('admin'), adminController.getSensors);
+router.get('/sensors',  adminController.getSensors);
 
-router.post('/create-sensor', isAuth, restrictTo('admin'),
+router.post('/create-sensor',
 [
     body('title').isString().withMessage("Enter Alphanumerics only").isLength({min:3}).trim(),
     body('description').isLength({min:5,max:200}).withMessage("Description must be bigger that 5 characters").trim()
 ] 
 ,adminController.createSensor);
 
-router.get('/edit-sensor/:sensorId', isAuth, restrictTo('admin'), adminController.getEditSensor);
+router.get('/edit-sensor/:sensorId', adminController.getEditSensor);
 
-router.post('/edit-sensor', isAuth, restrictTo('admin'),
+router.post('/edit-sensor',
 [
     body('title').isString().withMessage("Enter Alphanumerics only").isLength({min:3}).trim(),
     body('description').isLength({min:5,max:200}).withMessage("Description must be bigger that 5 characters").trim()
@@ -27,6 +27,6 @@ router.post('/edit-sensor', isAuth, restrictTo('admin'),
 , adminController.postEditSensor);
 
 
-router.post('/delete-sensor/:sensorId', isAuth, restrictTo('admin'), adminController.postDeleteSensor);
+router.post('/delete-sensor/:sensorId', adminController.postDeleteSensor);
 
 module.exports = router;

@@ -6,17 +6,17 @@ const websiteController = require('../controllers/website');
 const isAuth = require('../middleware/is-auth');
 
 
-router.get('/get-home-friends', isAuth, websiteController.getHomefriends);
+router.get('/get-home-friends', websiteController.getHomefriends);
 
-router.post('/add-home-friend', isAuth, websiteController.postAddHomeFriend);
+router.post('/add-home-friend', websiteController.postAddHomeFriend);
 
-router.post('/delete-home-friend', isAuth, websiteController.postDeleteHomeFriend);
+router.post('/delete-home-friend', websiteController.postDeleteHomeFriend);
 
-router.post('/user-add-sensor', isAuth, websiteController.postaddSensor);
+router.post('/user-add-sensor', websiteController.postaddSensor);
 
-router.post('/user-delete-sensor', isAuth, websiteController.postdeleteSensor);
+router.post('/user-delete-sensor', websiteController.postdeleteSensor);
 
-router.post('/get-sensor-data', isAuth, websiteController.getSensorData);
+router.post('/get-sensor-data', websiteController.getSensorData);
 
 router.post('/flame-sensor', websiteController.receiveFlameSensor);
 
