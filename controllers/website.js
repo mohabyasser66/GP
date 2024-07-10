@@ -166,10 +166,11 @@ exports.receiveFlameSensor = async (req,res,next) => {
   const message = req.body.message.toString();
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
+  const user = User.findById("663f41559216f2280ee26630");
   
   try {
     let notify = {
-        to: 'fx4hVUcCSYKMLh-d9bp2nL:APA91bFUkfMRyJm7ClHWfMqv8u77kCIPzEfPlmhLRiHw-mpZBpGocPDUs7OnZtNP4tPbVt4zGl4clcDWcIulGDZTjcol1SEovj24evzrGWKVZ3sjdDKs4OzQdyOlNDeD_vRCNMohIEeT',
+        to: user.FCMToken.toString(),
         notification: {
           title: "Notification",
           body: 'Flame Sensor Detected Something Wrong'
@@ -217,10 +218,12 @@ exports.receiveGasSensor = async (req,res,next) => {
   const message = req.body.message.toString();
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
+  const user = User.findById("663f41559216f2280ee26630");
+
   
   try {
     let notify = {
-        to: 'fx4hVUcCSYKMLh-d9bp2nL:APA91bFUkfMRyJm7ClHWfMqv8u77kCIPzEfPlmhLRiHw-mpZBpGocPDUs7OnZtNP4tPbVt4zGl4clcDWcIulGDZTjcol1SEovj24evzrGWKVZ3sjdDKs4OzQdyOlNDeD_vRCNMohIEeT',
+        to: user.FCMToken.toString(),
         notification: {
           title: "Notification",
           body: 'Gas Sensor Detected Something Wrong'
@@ -267,10 +270,12 @@ exports.receiveCameraSensor = async (req,res,next) => {
   const message = req.body.message.toString();
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
+  const user = User.findById("663f41559216f2280ee26630");
+
   
   try {
     let notify = {
-        to: 'fx4hVUcCSYKMLh-d9bp2nL:APA91bFUkfMRyJm7ClHWfMqv8u77kCIPzEfPlmhLRiHw-mpZBpGocPDUs7OnZtNP4tPbVt4zGl4clcDWcIulGDZTjcol1SEovj24evzrGWKVZ3sjdDKs4OzQdyOlNDeD_vRCNMohIEeT',
+        to: user.FCMToken.toString(),
         notification: {
           title: "Notification",
           body: 'Camera Detected Something Wrong'
@@ -317,10 +322,12 @@ exports.receivePirSensor = async (req,res,next) => {
   const message = req.body.message.toString();
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
+  const user = User.findById("663f41559216f2280ee26630");
+
   
   try {
     let notify = {
-        to: 'fx4hVUcCSYKMLh-d9bp2nL:APA91bFUkfMRyJm7ClHWfMqv8u77kCIPzEfPlmhLRiHw-mpZBpGocPDUs7OnZtNP4tPbVt4zGl4clcDWcIulGDZTjcol1SEovj24evzrGWKVZ3sjdDKs4OzQdyOlNDeD_vRCNMohIEeT',
+        to: user.FCMToken.toString(),
         notification: {
           title: "Notification",
           body: 'Pir Sensor Detected Something Wrong'
@@ -367,10 +374,12 @@ exports.receiveHealthSensor = async (req,res,next) => {
   const message = req.body.message.toString();
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
+  const user = User.findById("663f41559216f2280ee26630");
+
   
   try {
     let notify = {
-        to: 'fx4hVUcCSYKMLh-d9bp2nL:APA91bFUkfMRyJm7ClHWfMqv8u77kCIPzEfPlmhLRiHw-mpZBpGocPDUs7OnZtNP4tPbVt4zGl4clcDWcIulGDZTjcol1SEovj24evzrGWKVZ3sjdDKs4OzQdyOlNDeD_vRCNMohIEeT',
+        to: user.FCMToken.toString(),
         notification: {
           title: "Notification",
           body: 'Health Sensor Detected Something Wrong'

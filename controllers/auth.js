@@ -38,6 +38,7 @@ exports.signup = async (req,res,next) => {
 exports.login = async (req,res,next) => {
     const email = req.body.email;
     const password = req.body.password;
+    const token = req.body.token;
     let loadedUser;
     try{
         const user = await User.findOne({email:email});
@@ -54,6 +55,8 @@ exports.login = async (req,res,next) => {
             error.statusCode = 401;
             throw error;
         }
+        user.FCMToken = token;
+        await user.save();
         // const token = jwt.sign({
         //     email:loadedUser.email,
         //     userId: loadedUser._id.toString()
