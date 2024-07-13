@@ -14,6 +14,18 @@ const sensorDataSchema = new Schema({
     data: {
         type: Schema.Types.Mixed,
         required: true
+    },
+    description: {
+        type: String
+    },
+    helperText: {
+        type: String
+    },
+    isMaster: {
+        type: Boolean
+    },
+    isDetected: {
+        type: Boolean
     }
 });
 

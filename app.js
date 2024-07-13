@@ -1,4 +1,5 @@
 const path = require('path');
+const http = require("http");
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -43,9 +44,16 @@ app.use( (err,req,res,next) => {
 mongoose.connect('mongodb+srv://nodejs:862475139@cluster0.ib29zfy.mongodb.net/SDS?retryWrites=true&w=majority')
 .then(result => {
     console.log('Connected to MongoDB database!');
-    app.listen(process.env.PORT || 3000);
+    app.listen(3000);
 })
 .catch( err => {
     console.log(err);
 });
 
+//mongodb+srv://nodejs:862475139@cluster0.ib29zfy.mongodb.net/SDS?retryWrites=true&w=majority
+
+function keepServerAlive(){
+    http.get('http://localhost:3000/keepAlive', (res) => console.log("I am alive"));
+}
+
+setInterval(keepServerAlive, 300000);

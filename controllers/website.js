@@ -13,20 +13,38 @@ exports.getHomefriends = async (req, res, next) => {
       error.statusCode = 401;
       throw error;
     }
-    user.populate('homeFriends').then(ha => {
+    try{
+      await user.populate('homeFriends');
       for(let i in user.homeFriends){
-        hf[i] = user.homeFriends[i].name;
+        const { name, phone, email, long, late } = user.homeFriends[i];
+        hf[i] = {name, email, phone, long, late};
       }
       res.status(200).json({
         message: 'Home Friends Fetched.',
         homeFriends : hf
       });
-    })
-    .catch( err => {
-      const error = new Error(err);
-      error.httpStatusCode = 500;
-      return next(error);
-    });
+    }
+    catch(err){
+      if(!err.statusCode){
+        err.statusCode = 500;
+      }
+      next(err);
+    }
+    
+    // user.populate('homeFriends').then(ha => {
+    //   for(let i in user.homeFriends){
+    //     hf[i] = user.homeFriends[i].name;
+    //   }
+    //   res.status(200).json({
+    //     message: 'Home Friends Fetched.',
+    //     homeFriends : hf
+    //   });
+    // })
+    // .catch( err => {
+    //   const error = new Error(err);
+    //   error.httpStatusCode = 500;
+    //   return next(error);
+    // });
 };
 
 
@@ -56,6 +74,7 @@ exports.postAddHomeFriend = async (req,res,next) => {
       });
     }
     catch(err){
+      res.status(404).json("A user with this email could not be found");
       if(!err.statusCode){
         err.statusCode = 500;
       }
@@ -146,6 +165,11 @@ exports.getSensorData = async (req,res,next) => {
   const sensorId = req.body.sensorId;
   // const sensor = await UserSensors.findOne({ sensorId: sensorId });
   const allData = await SensorData.find({sensorId : sensorId });
+  if(!allData){
+    const error = new Error('A sensor with this ID could not be found');
+    error.statusCode = 401;
+    throw error;
+  }
   res.status(200).json({
     data: allData
   });
@@ -162,11 +186,43 @@ exports.getSensorData = async (req,res,next) => {
   // }
 }
 
+
+exports.updateUser = async (req,res,next) => {
+  const userId = req.body.userId;
+  try{
+    const user = await User.findByIdAndUpdate(userId, 
+      {
+        $set:{   
+          name: req.body.name,
+          email: req.body.email,
+          phone: req.body.phone,
+          late: req.body.late,
+          long: req.body.long
+        }
+      },
+      { new: true}
+    );
+    res.status(201).json({
+      message: "User Updated Successfully."
+    })
+
+  }
+  catch(err){
+    if(!err.statusCode){
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+
+}
+
+
+
 exports.receiveFlameSensor = async (req,res,next) => {
   const message = req.body.message.toString();
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
-  const user = User.findById("663f41559216f2280ee26630");
+  const user = await User.findById("663f41559216f2280ee26630");
   
   try {
     let notify = {
@@ -195,7 +251,11 @@ exports.receiveFlameSensor = async (req,res,next) => {
     const sensorData = new SensorData({
         data: data,
         timestamp: Date.now(),
-        sensorId: id
+        sensorId: id,
+        description: "Flame Sensor detects any fire or heat",
+        helperText: "Stay Calm, Cover Your Nose and Mouth, Avoid Elevators And Get To Safety.",
+        isMaster: true,
+        isDetected: true
     });
     
     await sensorData.save();
@@ -218,7 +278,7 @@ exports.receiveGasSensor = async (req,res,next) => {
   const message = req.body.message.toString();
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
-  const user = User.findById("663f41559216f2280ee26630");
+  const user = await User.findById("663f41559216f2280ee26630");
 
   
   try {
@@ -248,7 +308,11 @@ exports.receiveGasSensor = async (req,res,next) => {
     const sensorData = new SensorData({
         data: data,
         timestamp: Date.now(),
-        sensorId: id
+        sensorId: id,
+        description: "Gas Sensor detects the presence of harmful gases in surrounding the area.",
+        helperText: "Stay Calm, Cover Your Nose and Mouth, Avoid Confined Spaces, Move Quickly to Fresh Air And Seek Medical Attention.",
+        isMaster: false,
+        isDetected: true
     });
     
     await sensorData.save();
@@ -270,7 +334,7 @@ exports.receiveCameraSensor = async (req,res,next) => {
   const message = req.body.message.toString();
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
-  const user = User.findById("663f41559216f2280ee26630");
+  const user = await User.findById("663f41559216f2280ee26630");
 
   
   try {
@@ -300,7 +364,11 @@ exports.receiveCameraSensor = async (req,res,next) => {
     const sensorData = new SensorData({
         data: data,
         timestamp: Date.now(),
-        sensorId: id
+        sensorId: id,
+        description: "The camera detects instances of individuals fainting or identifies the distress of helpless individuals.",
+        helperText: "Rush To The Required Individual And Seek Medical Attention.",
+        isMaster: false,
+        isDetected: true
     });
     
     await sensorData.save();
@@ -322,7 +390,7 @@ exports.receivePirSensor = async (req,res,next) => {
   const message = req.body.message.toString();
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
-  const user = User.findById("663f41559216f2280ee26630");
+  const user = await User.findById("663f41559216f2280ee26630");
 
   
   try {
@@ -352,7 +420,11 @@ exports.receivePirSensor = async (req,res,next) => {
     const sensorData = new SensorData({
         data: data,
         timestamp: Date.now(),
-        sensorId: id
+        sensorId: id,
+        description: "PIR sensor detects unauthorized motion in certain areas like burglary.",
+        helperText: "Stay Calm, Do Not Confront And Call Emergency.",
+        isMaster: false,
+        isDetected: true
     });
     
     await sensorData.save();
@@ -374,7 +446,7 @@ exports.receiveHealthSensor = async (req,res,next) => {
   const message = req.body.message.toString();
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
-  const user = User.findById("663f41559216f2280ee26630");
+  const user = await User.findById("663f41559216f2280ee26630");
 
   
   try {
@@ -404,7 +476,11 @@ exports.receiveHealthSensor = async (req,res,next) => {
     const sensorData = new SensorData({
         data: data,
         timestamp: Date.now(),
-        sensorId: id
+        sensorId: id,
+        description: "Health sensor monitor your vital data.",
+        helperText: "Seek Medical Attention Immediately.",
+        isMaster: false,
+        isDetected: true
     });
     
     await sensorData.save();

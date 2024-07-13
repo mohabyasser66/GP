@@ -16,6 +16,8 @@ router.post('/user-add-sensor', websiteController.postaddSensor);
 
 router.post('/user-delete-sensor', websiteController.postdeleteSensor);
 
+router.post('/update-user', websiteController.updateUser);
+
 router.post('/get-sensor-data', websiteController.getSensorData);
 
 router.post('/flame-sensor', websiteController.receiveFlameSensor);

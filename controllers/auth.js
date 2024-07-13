@@ -15,13 +15,15 @@ exports.signup = async (req,res,next) => {
     const email = req.body.email;
     const name = req.body.name;
     const password = req.body.password;
+    const phone = req.body.phone;
     try{
         const hashedPw = await bcrypt.hash(password,12);
         
         const user = new User({
             email:email,
             password: hashedPw,
-            name:name
+            name:name,
+            phone: phone
         });
         const result = await user.save();
         res.status(201).json({message:'User created.', userId: result._id});
@@ -64,7 +66,7 @@ exports.login = async (req,res,next) => {
         // 'somesupersecretsecret',
         // {expiresIn: '2h'}
         // );
-        res.status(200).json({ userId: loadedUser._id.toString()});
+        res.status(200).json({ userId: loadedUser._id.toString(), name: loadedUser.name, role: loadedUser.role, late: loadedUser.late, long: loadedUser.long});
     
     }
     catch(err) {
