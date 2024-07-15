@@ -14,7 +14,20 @@ const sensorSchema = new Schema({
   sensorId: {
     type: String,
     required: true
-  }
+  },
+  isMaster: {
+    type: Boolean
+  },
+  isDetected: {
+      type: Boolean
+  },
+  description: {
+    type: String
+  },
+  helperText: {
+    type: String
+  },
+  familyId: String
 });
 
 module.exports = mongoose.model('UserSensor', sensorSchema);

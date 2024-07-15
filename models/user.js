@@ -16,7 +16,7 @@ const userSchema = new Schema({
       required: true
     },
     phone: {
-      type: Number
+      type: String
     },
     sensors: [
       {  sensorId: {
@@ -37,8 +37,9 @@ const userSchema = new Schema({
     FCMToken:{
       type: String
     },
-    late: Number,
-    long: Number
+    late: String,
+    long: String,
+    familyId: String
 });
 
 

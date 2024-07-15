@@ -12,7 +12,7 @@ const app = express();
 
 const authRoutes = require('./routes/auth');
 const websiteRoutes = require('./routes/website');
-const adminRoutes = require('./routes/admin');
+// const adminRoutes = require('./routes/admin');
 
 
 
@@ -29,7 +29,7 @@ app.use( (req,res,next) => {
 
 app.use(authRoutes);
 app.use(websiteRoutes);
-app.use(adminRoutes);
+// app.use(adminRoutes);
 
 
 app.use( (err,req,res,next) => {
@@ -50,10 +50,9 @@ mongoose.connect('mongodb+srv://nodejs:862475139@cluster0.ib29zfy.mongodb.net/SD
     console.log(err);
 });
 
-//mongodb+srv://nodejs:862475139@cluster0.ib29zfy.mongodb.net/SDS?retryWrites=true&w=majority
 
-function keepServerAlive(){
-    http.get('http://localhost:3000/keepAlive', (res) => console.log("I am alive"));
-}
+// function keepServerAlive(){
+//     http.get('http://localhost:3000/keepAlive', (res) => console.log("I am alive"));
+// }
 
-setInterval(keepServerAlive, 300000);
+// setInterval(keepServerAlive, 300000);

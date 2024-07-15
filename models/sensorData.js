@@ -20,12 +20,6 @@ const sensorDataSchema = new Schema({
     },
     helperText: {
         type: String
-    },
-    isMaster: {
-        type: Boolean
-    },
-    isDetected: {
-        type: Boolean
     }
 });
 

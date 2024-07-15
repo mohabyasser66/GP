@@ -2,6 +2,7 @@ const User = require('../models/user');
 const UserSensors = require('../models/userSensors');
 const SensorData = require('../models/sensorData');
 const request = require('request');
+const userSensors = require('../models/userSensors');
 
 
 
@@ -112,7 +113,11 @@ exports.postaddSensor = async (req,res,next) => {
     const usersensor = new UserSensors({
       title: req.body.title,
       userId: req.body.userId,
-      sensorId: req.body.sensorId
+      sensorId: req.body.sensorId,
+      isMaster: req.body.isMaster,
+      isDetected: req.body.isDetected,
+      description: req.body.description,
+      helperText: req.body.helperText
     })
     await usersensor.save();
     user.sensors.push({sensorId: req.body.sensorId});
@@ -128,6 +133,32 @@ exports.postaddSensor = async (req,res,next) => {
     next(err);
   }
   
+}
+
+exports.getUserSensors = async (req,res,next) => {
+  const sensors = await userSensors.find({ familyId: req.body.familyId });
+  if(!sensors){
+    const error = new Error('Could not find any sensor to this user.');
+    error.statusCode = 401;
+    throw error;
+  }
+  try{
+    let s = [];
+    for(let i in sensors){
+      const { title, sensorId, isMaster, isDetected, description, helperText } = sensors[i];
+      s[i] = { title, sensorId, isMaster, isDetected, description, helperText };
+    }
+    res.status(200).json({
+      message: "sensors fetched.",
+      sensors: s
+    })
+  }
+  catch(err){
+    if(!err.statusCode){
+      err.statusCode = 500;
+    }
+    next(err);
+  }
 }
 
 exports.postdeleteSensor = async (req,res,next) => {
@@ -164,15 +195,27 @@ exports.postdeleteSensor = async (req,res,next) => {
 exports.getSensorData = async (req,res,next) => {
   const sensorId = req.body.sensorId;
   // const sensor = await UserSensors.findOne({ sensorId: sensorId });
-  const allData = await SensorData.find({sensorId : sensorId });
+  try{
+    const allData = await SensorData.find({sensorId : sensorId });
+    const userOfSensor = await UserSensors.findOne({sensorId: sensorId});
   if(!allData){
     const error = new Error('A sensor with this ID could not be found');
     error.statusCode = 401;
     throw error;
   }
   res.status(200).json({
-    data: allData
+    data: allData,
+    isMaster: userOfSensor.isMaster,
+    isDetected: userOfSensor.isDetected
   });
+  }
+  catch(err){
+    if(!err.statusCode){
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+  
   // if(req.userId === sensor.userId.toString()){
   //   const allData = await SensorData.find({sensorId : sensorId });
   //   res.status(200).json({
@@ -200,7 +243,7 @@ exports.updateUser = async (req,res,next) => {
           long: req.body.long
         }
       },
-      { new: true}
+      { new: true }
     );
     res.status(201).json({
       message: "User Updated Successfully."
@@ -217,12 +260,37 @@ exports.updateUser = async (req,res,next) => {
 }
 
 
+exports.updateSensor = async (req,res,next) => {
+  const sensorId = req.body.sensorId;
+  try{
+    const sensor = await UserSensors.findOne({ sensorId: sensorId});
+    if(!sensor){
+      const error = new Error('A sensor with this ID could not be found');
+      error.statusCode = 401;
+      throw error;
+    }
+    sensor.isDetected = false;
+    await sensor.save();
+    res.status(200).json({
+      message: "sensor status changed."
+    });
+  }
+  catch(err){
+    if(!err.statusCode){
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+}
+
+
 
 exports.receiveFlameSensor = async (req,res,next) => {
   const message = req.body.message.toString();
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
   const user = await User.findById("663f41559216f2280ee26630");
+  const usersensor = await UserSensors.findOne({sensorId: id});
   
   try {
     let notify = {
@@ -253,11 +321,10 @@ exports.receiveFlameSensor = async (req,res,next) => {
         timestamp: Date.now(),
         sensorId: id,
         description: "Flame Sensor detects any fire or heat",
-        helperText: "Stay Calm, Cover Your Nose and Mouth, Avoid Elevators And Get To Safety.",
-        isMaster: true,
-        isDetected: true
-    });
-    
+        helperText: "Stay Calm, Cover Your Nose and Mouth, Avoid Elevators And Get To Safety."
+      });
+    usersensor.isDetected = true;
+    await usersensor.save();
     await sensorData.save();
     res.status(200).json({
       message: "received data from flame sensor"
@@ -279,7 +346,7 @@ exports.receiveGasSensor = async (req,res,next) => {
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
   const user = await User.findById("663f41559216f2280ee26630");
-
+  const usersensor = await UserSensors.findOne({sensorId: id});
   
   try {
     let notify = {
@@ -310,11 +377,10 @@ exports.receiveGasSensor = async (req,res,next) => {
         timestamp: Date.now(),
         sensorId: id,
         description: "Gas Sensor detects the presence of harmful gases in surrounding the area.",
-        helperText: "Stay Calm, Cover Your Nose and Mouth, Avoid Confined Spaces, Move Quickly to Fresh Air And Seek Medical Attention.",
-        isMaster: false,
-        isDetected: true
+        helperText: "Stay Calm, Cover Your Nose and Mouth, Avoid Confined Spaces, Move Quickly to Fresh Air And Seek Medical Attention."
     });
-    
+    usersensor.isDetected = true;
+    await usersensor.save();
     await sensorData.save();
     res.status(200).json({
       message: "received data from gas sensor"
@@ -335,7 +401,7 @@ exports.receiveCameraSensor = async (req,res,next) => {
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
   const user = await User.findById("663f41559216f2280ee26630");
-
+  const usersensor = await UserSensors.findOne({sensorId: id});
   
   try {
     let notify = {
@@ -367,10 +433,9 @@ exports.receiveCameraSensor = async (req,res,next) => {
         sensorId: id,
         description: "The camera detects instances of individuals fainting or identifies the distress of helpless individuals.",
         helperText: "Rush To The Required Individual And Seek Medical Attention.",
-        isMaster: false,
-        isDetected: true
     });
-    
+    usersensor.isDetected = true;
+    await usersensor.save();
     await sensorData.save();
     res.status(200).json({
       message: "received data from camera"
@@ -391,7 +456,7 @@ exports.receivePirSensor = async (req,res,next) => {
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
   const user = await User.findById("663f41559216f2280ee26630");
-
+  const usersensor = await UserSensors.findOne({sensorId: id});
   
   try {
     let notify = {
@@ -418,15 +483,14 @@ exports.receivePirSensor = async (req,res,next) => {
     sendNotification(notify);
     
     const sensorData = new SensorData({
-        data: data,
-        timestamp: Date.now(),
-        sensorId: id,
-        description: "PIR sensor detects unauthorized motion in certain areas like burglary.",
-        helperText: "Stay Calm, Do Not Confront And Call Emergency.",
-        isMaster: false,
-        isDetected: true
+      data: data,
+      timestamp: Date.now(),
+      sensorId: id,
+      description: "PIR sensor detects unauthorized motion in certain areas like burglary.",
+      helperText: "Stay Calm, Do Not Confront And Call Emergency.",
     });
-    
+    usersensor.isDetected = true;
+    await usersensor.save();
     await sensorData.save();
     res.status(200).json({
       message: "received data from pir sensor"
@@ -447,7 +511,7 @@ exports.receiveHealthSensor = async (req,res,next) => {
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
   const user = await User.findById("663f41559216f2280ee26630");
-
+  const usersensor = await UserSensors.findOne({sensorId: id});
   
   try {
     let notify = {
@@ -474,15 +538,14 @@ exports.receiveHealthSensor = async (req,res,next) => {
     sendNotification(notify);
     
     const sensorData = new SensorData({
-        data: data,
-        timestamp: Date.now(),
-        sensorId: id,
-        description: "Health sensor monitor your vital data.",
-        helperText: "Seek Medical Attention Immediately.",
-        isMaster: false,
-        isDetected: true
+      data: data,
+      timestamp: Date.now(),
+      sensorId: id,
+      description: "Health sensor monitor your vital data.",
+      helperText: "Seek Medical Attention Immediately."
     });
-    
+    usersensor.isDetected = true;
+    await usersensor.save();
     await sensorData.save();
     res.status(200).json({
       message: "received data from health sensor"

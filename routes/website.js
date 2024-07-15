@@ -6,7 +6,7 @@ const websiteController = require('../controllers/website');
 const isAuth = require('../middleware/is-auth');
 
 
-router.get('/get-home-friends', websiteController.getHomefriends);
+router.post('/get-home-friends', websiteController.getHomefriends);
 
 router.post('/add-home-friend', websiteController.postAddHomeFriend);
 
@@ -17,6 +17,10 @@ router.post('/user-add-sensor', websiteController.postaddSensor);
 router.post('/user-delete-sensor', websiteController.postdeleteSensor);
 
 router.post('/update-user', websiteController.updateUser);
+
+router.post('/update-sensor', websiteController.updateSensor);
+
+router.post('/get-user-sensors', websiteController.getUserSensors);
 
 router.post('/get-sensor-data', websiteController.getSensorData);
 
