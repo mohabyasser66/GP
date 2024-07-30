@@ -507,20 +507,35 @@ exports.receivePirSensor = async (req,res,next) => {
 
 
 exports.receiveHealthSensor = async (req,res,next) => {
-  const message = req.body.message.toString();
-  const data = message.split(' ')[0];
-  const id = message.split(' ')[1];
-  const user = await User.findById("663f41559216f2280ee26630");
+  const type = req.body.type.toString();
+  const value = Number(req.body.value);
+  const id = "5";
+  let body = "";
+  let homefriendBody = "";
+  let receipentTokens = [];
   const usersensor = await UserSensors.findOne({sensorId: id});
+  const userId = usersensor.userId.toString();
+  const user = await User.findById(userId);
+  if(!user){
+    const error = new Error('Could not find a user to this sensor.');
+    error.statusCode = 401;
+    throw error;
+  }
+  await user.populate('homeFriends');
+  for(let i in user.homeFriends){
+    const { FCMToken } = user.homeFriends[i];
+    receipentTokens[i] = FCMToken;
+  }
+  if(type == "heart_rate"){
+    body = "Your Heart rate is abnormal, seek an immediate assistance.";
+    homefriendBody = "Your home friend " + user.name + " heart rate is abnormal, seek an immediate assistance.";
+  }
+  else if(type == "spo2"){
+    body = "The oxygen in your blood is in abnormal state, seek an immediate assistance.";
+    homefriendBody = "Your home friend " + user.name + " blood oxygen is abnormal, seek an immediate assistance.";
+  }
   
   try {
-    let notify = {
-        to: user.FCMToken.toString(),
-        notification: {
-          title: "Notification",
-          body: 'Health Sensor Detected Something Wrong'
-        },
-    };
     function sendNotification(message){
       let clientServerOptions = {
         uri: 'https://fcm.googleapis.com/fcm/send',
@@ -535,10 +550,27 @@ exports.receiveHealthSensor = async (req,res,next) => {
         console.log(error, res.body);
       });
     }
-    sendNotification(notify);
+    let mainNotify = {
+      to: user.FCMToken.toString(),
+      notification: {
+        title: "Notification",
+        body: body
+      },
+    };
+    sendNotification(mainNotify);
+    for(let j in receipentTokens){
+      let friendNotify = {
+        to: receipentTokens[j],
+        notification: {
+          title: "Notification",
+          body: homefriendBody
+        },
+      };
+      sendNotification(friendNotify);
+    }
     
     const sensorData = new SensorData({
-      data: data,
+      data: value,
       timestamp: Date.now(),
       sensorId: id,
       description: "Health sensor monitor your vital data.",
