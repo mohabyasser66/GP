@@ -203,6 +203,11 @@ exports.getSensorData = async (req,res,next) => {
     error.statusCode = 401;
     throw error;
   }
+  if(!userOfSensor){
+    const error = new Error('Could not find user to this sensor');
+    error.statusCode = 401;
+    throw error;
+  }
   res.status(200).json({
     data: allData,
     isMaster: userOfSensor.isMaster,
