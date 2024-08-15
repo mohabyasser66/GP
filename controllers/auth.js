@@ -66,7 +66,7 @@ exports.login = async (req,res,next) => {
         // 'somesupersecretsecret',
         // {expiresIn: '2h'}
         // );
-        res.status(200).json({ userId: loadedUser._id.toString(), name: loadedUser.name, role: loadedUser.role, late: loadedUser.late, long: loadedUser.long});
+        res.status(200).json({ userId: loadedUser._id.toString(), name: loadedUser.name, role: loadedUser.role, late: loadedUser.late, long: loadedUser.long, familyId: loadedUser.familyId});
     
     }
     catch(err) {

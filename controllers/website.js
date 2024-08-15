@@ -48,39 +48,76 @@ exports.getHomefriends = async (req, res, next) => {
     // });
 };
 
+exports.getAllUsers = async (req,res,next) => {
+  const users = await User.find();
+  let allUsers = [];
+  let oneUser = {};
+  try{
+    if(!users) {
+      const error = new Error("could not find any user.");
+      error.statusCode = 404;
+      throw error;
+    }
+    users.forEach((user) => {
+      oneUser = {
+        "id": user._id,
+        "name": user.name,
+        "email": user.email,
+        "homeFriends": user.homeFriends,
+        "phone": user.phone,
+        "familyId": user.familyId,
+        "Late": user.late,
+        "long": user.long,
+        "sensors": user.sensors
+      }
+      allUsers.push(oneUser);
+    });
+    res.status(200).json({
+      message: "Users Fetched Successfully.",
+      Users: allUsers
+    })
+
+  }
+  catch(err){
+    if(!err.statusCode){
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+}
 
 exports.postAddHomeFriend = async (req,res,next) => {
-    const friendId = req.body.friendId;
-    const user = await User.findById(req.body.userId);
-    try{
-      if(!user){
-        const error = new Error('A user with this email could not be found');
-        error.statusCode = 404;
-        throw error;
-      }
-      // await user.addHomeFriend(friendId);
-      const homeFriendIndex = user.homeFriends.findIndex(hm => {
-        return hm.toString() === friendId.toString();
-      });
-      if(homeFriendIndex >=0){
-        const error = new Error('Home Friend already exist');
-        error.statusCode = 403;
-        throw error;
-      }else{
-        user.homeFriends.push(friendId);
-        await user.save();
-      }
-      res.status(201).json({
-          message: 'Home friend added.'
-      });
+  const friendId = req.body.friendId;
+  const user = await User.findById(req.body.userId);
+  try{
+    if(!user){
+      const error = new Error('A user with this email could not be found');
+      error.statusCode = 404;
+      throw error;
     }
-    catch(err){
-      res.status(404).json("A user with this email could not be found");
-      if(!err.statusCode){
-        err.statusCode = 500;
-      }
-      next(err);
+    // await user.addHomeFriend(friendId);
+    const homeFriendIndex = user.homeFriends.findIndex(hm => {
+      return hm.toString() === friendId.toString();
+    });
+    if(homeFriendIndex >=0){
+      const error = new Error('Home Friend already exist');
+      error.statusCode = 403;
+      throw error;
+    }else{
+      user.homeFriends.push(friendId);
+      await user.save();
     }
+    res.status(201).json({
+        message: 'Home friend added.'
+    });
+  }
+  catch(err){
+    res.status(404).json("A user with this email could not be found");
+    if(!err.statusCode){
+      err.statusCode = 500;
+    }
+    next(err);
+  }
 }
 
 exports.postDeleteHomeFriend = async (req,res,next) => {
@@ -325,7 +362,7 @@ exports.receiveFlameSensor = async (req,res,next) => {
         }
       }
       request(clientServerOptions, function(error,res){
-        console.log(error, res.body);
+        console.log(error, res.body, new Date(Date.now()).toLocaleTimeString());
       });
     }
     sendNotification(notify);
@@ -381,7 +418,7 @@ exports.receiveGasSensor = async (req,res,next) => {
         }
       }
       request(clientServerOptions, function(error,res){
-        console.log(error, res.body);
+        console.log(error, res.body, new Date(Date.now()).toLocaleTimeString());
       });
     }
     sendNotification(notify);
@@ -436,7 +473,7 @@ exports.receiveCameraSensor = async (req,res,next) => {
         }
       }
       request(clientServerOptions, function(error,res){
-        console.log(error, res.body);
+        console.log(error, res.body, new Date(Date.now()).toLocaleTimeString());
       });
     }
     sendNotification(notify);
@@ -491,7 +528,7 @@ exports.receivePirSensor = async (req,res,next) => {
         }
       }
       request(clientServerOptions, function(error,res){
-        console.log(error, res.body);
+        console.log(error, res.body, new Date(Date.now()).toLocaleTimeString());
       });
     }
     sendNotification(notify);
@@ -560,7 +597,7 @@ exports.receiveHealthSensor = async (req,res,next) => {
         }
       }
       request(clientServerOptions, function(error,res){
-        console.log(error, res.body);
+        console.log(error, res.body, new Date(Date.now()).toLocaleTimeString());
       });
     }
     let mainNotify = {

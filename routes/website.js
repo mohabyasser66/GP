@@ -3,10 +3,12 @@ const { body } = require('express-validator');
 
 const router = express.Router();
 const websiteController = require('../controllers/website');
-const isAuth = require('../middleware/is-auth');
+const restrict = require('../middleware/restrict-to');
 
 
 router.post('/get-home-friends', websiteController.getHomefriends);
+
+router.get('/get-all-users',websiteController.getAllUsers);
 
 router.post('/add-home-friend', websiteController.postAddHomeFriend);
 
