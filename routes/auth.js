@@ -15,7 +15,7 @@ router.post('/login', [
 ] ,authController.login);
 
 
-router.put('/signup',[
+router.post('/signup',[
     body('email').isEmail().withMessage('please enter a valid email.').custom( (value, {req}) => {
         return User.findOne({email: value}).then(userDoc => {
             if(userDoc) {
