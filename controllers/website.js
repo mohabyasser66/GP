@@ -3,6 +3,7 @@ const UserSensors = require('../models/userSensors');
 const SensorData = require('../models/sensorData');
 const request = require('request');
 const userSensors = require('../models/userSensors');
+const { FCMToken } = require('./auth');
 
 
 
@@ -631,6 +632,76 @@ exports.receiveHealthSensor = async (req,res,next) => {
     await sensorData.save();
     res.status(200).json({
       message: "received data from health sensor"
+    })
+  }
+  catch (err) {
+    if(!err.statusCode){
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+  
+}
+
+
+
+
+exports.receiveEnvironmentDanger = async (req,res,next) => {
+  const temperature = Number(req.body.temperature); 
+  const tokens = await User.find().select("FCMToken -_id");
+  let tokenArray = [];
+  // console.log(tokens);
+  
+  try {
+    if(!tokens){
+      const error = new Error('Could not find required tokens.');
+      error.statusCode = 401;
+      throw error;
+    }
+
+    // for(let i in tokens){
+    //   tokenArray[i] = tokens[i].FCMToken;
+    // }
+    // console.log(tokenArray);
+    
+    
+    function sendNotification(message){
+      let clientServerOptions = {
+        uri: 'https://fcm.googleapis.com/fcm/send',
+        method: 'POST',
+        body: JSON.stringify(message),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'key=AAAAEx2Gzqo:APA91bGNeVCLxP6iKFra3Ttit3X_OI53TM3Xr3mcdhThq0dM7O5AUkdy4d0vzFHnanrQeOh5vlsPA52w-8JObkQwhtDQw47NCNaYKXF8-DFf65H42MUaYjc5PehWcMWmVpMR0R70DkMK'
+        }
+      }
+      request(clientServerOptions, function(error,res){
+        console.log(error, res.body, new Date(Date.now()).toLocaleTimeString());
+      });
+    }
+
+    for(let i in tokens){
+      let notify = {
+        to: tokens[i].FCMToken,
+        notification: {
+          title: "Notification",
+          body: "A fire is expected to break out with a 90% probability in the village of Damlu due to high temperatures and escaping smoke."
+        },
+      };
+      sendNotification(notify);
+    }
+    
+    
+    // const sensorData = new SensorData({
+    //   data: temperature,
+    //   timestamp: Date.now(),
+    //   sensorId: id,
+    //   description: "Environment sensor monitor natural disasters.",
+    //   helperText: "Seek Safe Place Immediately."
+    // });
+    // await sensorData.save();
+    res.status(200).json({
+      message: "received data from Environment sensor"
     })
   }
   catch (err) {

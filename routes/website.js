@@ -36,4 +36,6 @@ router.post('/pir-sensor', websiteController.receivePirSensor);
 
 router.post('/health-sensor', websiteController.receiveHealthSensor);
 
+router.post('/environment-sensor', websiteController.receiveEnvironmentDanger);
+
 module.exports = router;
