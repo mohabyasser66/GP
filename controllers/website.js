@@ -4,7 +4,7 @@ const SensorData = require('../models/sensorData');
 const userSensors = require('../models/userSensors');
 const axios = require('axios');
 const { google } = require('googleapis');
-const serviceAccount = require('../group-of-rest-end-point-firebase-adminsdk-4gqsv-d621b6438f.json');
+const serviceAccount = require('../group-of-rest-end-point-firebase-adminsdk-4gqsv-a086f6a0b2.json');
 
 const SCOPES = ['https://www.googleapis.com/auth/firebase.messaging'];
 
@@ -36,7 +36,7 @@ async function sendFcmNotification(token, notification) {
   try {
     const response = await axios.post(fcmUrl, payload, {
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
+        'Authorization': "Bearer " + accessToken,
         'Content-Type': 'application/json',
       },
     });
@@ -299,7 +299,7 @@ exports.getSensorData = async (req,res,next) => {
   const sensorId = req.body.sensorId;
   // const sensor = await UserSensors.findOne({ sensorId: sensorId });
   try{
-    const allData = await SensorData.find({sensorId : sensorId });
+    const allData = await SensorData.find({sensorId : sensorId }).select("sensorId timestamp data description helperText -_id - __v");
     const userOfSensor = await UserSensors.findOne({sensorId: sensorId});
   if(!allData){
     const error = new Error('A sensor with this ID could not be found');
