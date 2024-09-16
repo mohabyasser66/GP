@@ -4,13 +4,14 @@ const SensorData = require('../models/sensorData');
 const userSensors = require('../models/userSensors');
 const axios = require('axios');
 const { google } = require('googleapis');
-const serviceAccount = require('../group-of-rest-end-point-firebase-adminsdk-4gqsv-a086f6a0b2.json');
+require("dotenv").config();
+// const serviceAccount = require('../group-of-rest-end-point-firebase-adminsdk-4gqsv-a086f6a0b2.json');
 
 const SCOPES = ['https://www.googleapis.com/auth/firebase.messaging'];
 
 const auth = new google.auth.JWT({
-  email: serviceAccount.client_email,
-  key: serviceAccount.private_key,
+  email: process.env.client_email,
+  key: process.env.private_key,
   scopes: SCOPES
 });
 
@@ -22,7 +23,7 @@ async function getAccessToken() {
 
 async function sendFcmNotification(token, notification) {
   const accessToken = await getAccessToken();
-  const fcmUrl = `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`;
+  const fcmUrl = `https://fcm.googleapis.com/v1/projects/${process.env.project_id}/messages:send`;
 
   const payload = {
     message: {
