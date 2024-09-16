@@ -1,10 +1,66 @@
 const User = require('../models/user');
 const UserSensors = require('../models/userSensors');
 const SensorData = require('../models/sensorData');
-const request = require('request');
 const userSensors = require('../models/userSensors');
-const { FCMToken } = require('./auth');
+const axios = require('axios');
+const { google } = require('googleapis');
+const serviceAccount = require('../group-of-rest-end-point-firebase-adminsdk-4gqsv-d621b6438f.json');
 
+const SCOPES = ['https://www.googleapis.com/auth/firebase.messaging'];
+
+const auth = new google.auth.JWT({
+  email: serviceAccount.client_email,
+  key: serviceAccount.private_key,
+  scopes: SCOPES
+});
+
+async function getAccessToken() {
+  const tokens = await auth.authorize();
+  return tokens.access_token;
+}
+
+
+async function sendFcmNotification(token, notification) {
+  const accessToken = await getAccessToken();
+  const fcmUrl = `https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`;
+
+  const payload = {
+    message: {
+      token: token,  // Device FCM token
+      notification: {
+        title: notification.title,
+        body: notification.body,
+      },
+    },
+  };
+  try {
+    const response = await axios.post(fcmUrl, payload, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+    });
+    console.log('Notification sent successfully:', response.data, new Date(Date.now()).toLocaleTimeString() );
+    
+  }
+  catch (err) {
+    console.log('Error sending notification:', err.response ? err.response.data : err.message);
+  }
+}
+
+
+async function saveData(description, helperText, data, id, usersensor){
+  const sensorData = new SensorData({
+    data: data,
+    timestamp: Date.now(),
+    sensorId: id,
+    description: description,
+    helperText: helperText,
+  });
+  usersensor.isDetected = true;
+  await usersensor.save();
+  await sensorData.save();
+}
 
 
 exports.getHomefriends = async (req, res, next) => {
@@ -336,59 +392,26 @@ exports.updateSensor = async (req,res,next) => {
 }
 
 
-
 exports.receiveFlameSensor = async (req,res,next) => {
   const message = req.body.message.toString();
   const data = message.split(' ')[0];
   const id = message.split(' ')[1];
   const user = await User.findById("663f41559216f2280ee26630");
   const usersensor = await UserSensors.findOne({sensorId: id});
+  const description = "Flame Sensor detects any fire or heat";
+  const helperText = "Stay Calm, Cover Your Nose and Mouth, Avoid Elevators And Get To Safety.";
   
-  try {
-    let notify = {
-        to: user.FCMToken.toString(),
-        notification: {
-          title: "Notification",
-          body: 'Flame Sensor Detected Something Wrong'
-        },
-    };
-    function sendNotification(message){
-      let clientServerOptions = {
-        uri: 'https://fcm.googleapis.com/fcm/send',
-        method: 'POST',
-        body: JSON.stringify(message),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'key=AAAAEx2Gzqo:APA91bGNeVCLxP6iKFra3Ttit3X_OI53TM3Xr3mcdhThq0dM7O5AUkdy4d0vzFHnanrQeOh5vlsPA52w-8JObkQwhtDQw47NCNaYKXF8-DFf65H42MUaYjc5PehWcMWmVpMR0R70DkMK'
-        }
-      }
-      request(clientServerOptions, function(error,res){
-        console.log(error, res.body, new Date(Date.now()).toLocaleTimeString());
-      });
-    }
-    sendNotification(notify);
-    
-    const sensorData = new SensorData({
-        data: data,
-        timestamp: Date.now(),
-        sensorId: id,
-        description: "Flame Sensor detects any fire or heat",
-        helperText: "Stay Calm, Cover Your Nose and Mouth, Avoid Elevators And Get To Safety."
-      });
-    usersensor.isDetected = true;
-    await usersensor.save();
-    await sensorData.save();
-    res.status(200).json({
-      message: "received data from flame sensor"
-    })
-  }
-  catch (err) {
-    if(!err.statusCode){
-      err.statusCode = 500;
-    }
-    next(err);
-  }
-  
+  const deviceToken = user.FCMToken.toString();  // The FCM token for the specific device
+  const notification = {
+    title: 'Notification',
+    body: 'Flame Sensor Detected Something Wrong',
+  };
+
+  sendFcmNotification(deviceToken, notification);
+  saveData(description, helperText, data, id, usersensor);
+  res.status(200).json({
+    message: "received data from Flame sensor"
+  });
 }
 
 
@@ -399,52 +422,20 @@ exports.receiveGasSensor = async (req,res,next) => {
   const id = message.split(' ')[1];
   const user = await User.findById("663f41559216f2280ee26630");
   const usersensor = await UserSensors.findOne({sensorId: id});
+  const description = "Gas Sensor detects the presence of harmful gases in surrounding the area.";
+  const helperText = "Stay Calm, Cover Your Nose and Mouth, Avoid Confined Spaces, Move Quickly to Fresh Air And Seek Medical Attention.";
   
-  try {
-    let notify = {
-        to: user.FCMToken.toString(),
-        notification: {
-          title: "Notification",
-          body: 'Gas Sensor Detected Something Wrong'
-        },
-    };
-    function sendNotification(message){
-      let clientServerOptions = {
-        uri: 'https://fcm.googleapis.com/fcm/send',
-        method: 'POST',
-        body: JSON.stringify(message),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'key=AAAAEx2Gzqo:APA91bGNeVCLxP6iKFra3Ttit3X_OI53TM3Xr3mcdhThq0dM7O5AUkdy4d0vzFHnanrQeOh5vlsPA52w-8JObkQwhtDQw47NCNaYKXF8-DFf65H42MUaYjc5PehWcMWmVpMR0R70DkMK'
-        }
-      }
-      request(clientServerOptions, function(error,res){
-        console.log(error, res.body, new Date(Date.now()).toLocaleTimeString());
-      });
-    }
-    sendNotification(notify);
-    
-    const sensorData = new SensorData({
-        data: data,
-        timestamp: Date.now(),
-        sensorId: id,
-        description: "Gas Sensor detects the presence of harmful gases in surrounding the area.",
-        helperText: "Stay Calm, Cover Your Nose and Mouth, Avoid Confined Spaces, Move Quickly to Fresh Air And Seek Medical Attention."
-    });
-    usersensor.isDetected = true;
-    await usersensor.save();
-    await sensorData.save();
-    res.status(200).json({
-      message: "received data from gas sensor"
-    })
-  }
-  catch (err) {
-    if(!err.statusCode){
-      err.statusCode = 500;
-    }
-    next(err);
-  }
-  
+  const deviceToken = user.FCMToken.toString();
+  const notification = {
+    title: 'Notification',
+    body: 'Gas Sensor Detected Something Wrong',
+  };
+
+  sendFcmNotification(deviceToken, notification);
+  saveData(description, helperText, data, id, usersensor);
+  res.status(200).json({
+    message: "received data from gas sensor"
+  });
 }
 
 
@@ -454,52 +445,19 @@ exports.receiveCameraSensor = async (req,res,next) => {
   const id = message.split(' ')[1];
   const user = await User.findById("663f41559216f2280ee26630");
   const usersensor = await UserSensors.findOne({sensorId: id});
+  const description = "The camera detects instances of individuals fainting or identifies the distress of helpless individuals.";
+  const helperText = "Rush To The Required Individual And Seek Medical Attention.";
   
-  try {
-    let notify = {
-        to: user.FCMToken.toString(),
-        notification: {
-          title: "Notification",
-          body: 'Camera Detected Something Wrong'
-        },
-    };
-    function sendNotification(message){
-      let clientServerOptions = {
-        uri: 'https://fcm.googleapis.com/fcm/send',
-        method: 'POST',
-        body: JSON.stringify(message),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'key=AAAAEx2Gzqo:APA91bGNeVCLxP6iKFra3Ttit3X_OI53TM3Xr3mcdhThq0dM7O5AUkdy4d0vzFHnanrQeOh5vlsPA52w-8JObkQwhtDQw47NCNaYKXF8-DFf65H42MUaYjc5PehWcMWmVpMR0R70DkMK'
-        }
-      }
-      request(clientServerOptions, function(error,res){
-        console.log(error, res.body, new Date(Date.now()).toLocaleTimeString());
-      });
-    }
-    sendNotification(notify);
-    
-    const sensorData = new SensorData({
-        data: data,
-        timestamp: Date.now(),
-        sensorId: id,
-        description: "The camera detects instances of individuals fainting or identifies the distress of helpless individuals.",
-        helperText: "Rush To The Required Individual And Seek Medical Attention.",
-    });
-    usersensor.isDetected = true;
-    await usersensor.save();
-    await sensorData.save();
-    res.status(200).json({
-      message: "received data from camera"
-    })
-  }
-  catch (err) {
-    if(!err.statusCode){
-      err.statusCode = 500;
-    }
-    next(err);
-  }
-  
+  const deviceToken = user.FCMToken.toString();
+  const notification = {
+    title: 'Notification',
+    body: 'Camera Detected Something Wrong',
+  };
+  sendFcmNotification(deviceToken, notification);
+  saveData(description, helperText, data, id, usersensor);
+  res.status(200).json({
+    message: "received data from camera"
+  });
 }
 
 
@@ -509,52 +467,19 @@ exports.receivePirSensor = async (req,res,next) => {
   const id = message.split(' ')[1];
   const user = await User.findById("663f41559216f2280ee26630");
   const usersensor = await UserSensors.findOne({sensorId: id});
-  
-  try {
-    let notify = {
-        to: user.FCMToken.toString(),
-        notification: {
-          title: "Notification",
-          body: 'Pir Sensor Detected Something Wrong'
-        },
-    };
-    function sendNotification(message){
-      let clientServerOptions = {
-        uri: 'https://fcm.googleapis.com/fcm/send',
-        method: 'POST',
-        body: JSON.stringify(message),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'key=AAAAEx2Gzqo:APA91bGNeVCLxP6iKFra3Ttit3X_OI53TM3Xr3mcdhThq0dM7O5AUkdy4d0vzFHnanrQeOh5vlsPA52w-8JObkQwhtDQw47NCNaYKXF8-DFf65H42MUaYjc5PehWcMWmVpMR0R70DkMK'
-        }
-      }
-      request(clientServerOptions, function(error,res){
-        console.log(error, res.body, new Date(Date.now()).toLocaleTimeString());
-      });
-    }
-    sendNotification(notify);
-    
-    const sensorData = new SensorData({
-      data: data,
-      timestamp: Date.now(),
-      sensorId: id,
-      description: "PIR sensor detects unauthorized motion in certain areas like burglary.",
-      helperText: "Stay Calm, Do Not Confront And Call Emergency.",
-    });
-    usersensor.isDetected = true;
-    await usersensor.save();
-    await sensorData.save();
-    res.status(200).json({
-      message: "received data from pir sensor"
-    })
-  }
-  catch (err) {
-    if(!err.statusCode){
-      err.statusCode = 500;
-    }
-    next(err);
-  }
-  
+  const description = "PIR sensor detects unauthorized motion in certain areas like burglary.";
+  const helperText = "Stay Calm, Do Not Confront And Call Emergency.";
+ 
+  const deviceToken = user.FCMToken.toString();
+  const notification = {
+    title: 'Notification',
+    body: 'PIR sensor Detected Something Wrong',
+  };
+  sendFcmNotification(deviceToken, notification);
+  saveData(description, helperText, data, id, usersensor);
+  res.status(200).json({
+    message: "received data from pir sensor"
+  });
 }
 
 
@@ -562,12 +487,20 @@ exports.receiveHealthSensor = async (req,res,next) => {
   const type = req.body.type.toString();
   const value = Number(req.body.value);
   const id = "5";
-  let body = "";
-  let homefriendBody = "";
   let receipentTokens = [];
   const usersensor = await UserSensors.findOne({sensorId: id});
   const userId = usersensor.userId.toString();
   const user = await User.findById(userId);
+  const description = "Health sensor monitor your vital data.";
+  const helperText = "Seek Medical Attention Immediately.";
+  let notification = {
+    title: 'Notification',
+    body: ''
+  };
+  let friendNotification = {
+    title: 'Notification',
+    body: ''
+  }
   try {
     if(!user){
       const error = new Error('Could not find a user to this sensor.');
@@ -580,56 +513,20 @@ exports.receiveHealthSensor = async (req,res,next) => {
       receipentTokens[i] = FCMToken;
     }
     if(type == "heart_rate"){
-      body = "Your Heart rate is abnormal, seek an immediate assistance.";
-      homefriendBody = "Your home friend " + user.name + " heart rate is abnormal, seek an immediate assistance.";
+      notification.body = "Your Heart rate is abnormal, seek an immediate assistance.";
+      friendNotification.body = "Your home friend " + user.name + " heart rate is abnormal, seek an immediate assistance.";
     }
     else if(type == "spo2"){
-      body = "The oxygen in your blood is in abnormal state, seek an immediate assistance.";
-      homefriendBody = "Your home friend " + user.name + " blood oxygen is abnormal, seek an immediate assistance.";
+      notification.body = "The oxygen in your blood is in abnormal state, seek an immediate assistance.";
+      friendNotification.body = "Your home friend " + user.name + " blood oxygen is abnormal, seek an immediate assistance.";
     }
-    function sendNotification(message){
-      let clientServerOptions = {
-        uri: 'https://fcm.googleapis.com/fcm/send',
-        method: 'POST',
-        body: JSON.stringify(message),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'key=AAAAEx2Gzqo:APA91bGNeVCLxP6iKFra3Ttit3X_OI53TM3Xr3mcdhThq0dM7O5AUkdy4d0vzFHnanrQeOh5vlsPA52w-8JObkQwhtDQw47NCNaYKXF8-DFf65H42MUaYjc5PehWcMWmVpMR0R70DkMK'
-        }
-      }
-      request(clientServerOptions, function(error,res){
-        console.log(error, res.body, new Date(Date.now()).toLocaleTimeString());
-      });
-    }
-    let mainNotify = {
-      to: user.FCMToken.toString(),
-      notification: {
-        title: "Notification",
-        body: body
-      },
-    };
-    sendNotification(mainNotify);
+   
+    sendFcmNotification(user.FCMToken.toString(), notification);
     for(let j in receipentTokens){
-      let friendNotify = {
-        to: receipentTokens[j],
-        notification: {
-          title: "Notification",
-          body: homefriendBody
-        },
-      };
-      sendNotification(friendNotify);
+      sendFcmNotification(receipentTokens[j], friendNotification);
     }
+    saveData(description, helperText, value, id, usersensor)
     
-    const sensorData = new SensorData({
-      data: value,
-      timestamp: Date.now(),
-      sensorId: id,
-      description: "Health sensor monitor your vital data.",
-      helperText: "Seek Medical Attention Immediately."
-    });
-    usersensor.isDetected = true;
-    await usersensor.save();
-    await sensorData.save();
     res.status(200).json({
       message: "received data from health sensor"
     })
@@ -649,8 +546,13 @@ exports.receiveHealthSensor = async (req,res,next) => {
 exports.receiveEnvironmentDanger = async (req,res,next) => {
   const temperature = Number(req.body.temperature); 
   const tokens = await User.find().select("FCMToken -_id");
-  let tokenArray = [];
+  // const description = "Environment Danger keep you safe from outside threats.";
+  // const helperText = "stay safe inside your house.";
   // console.log(tokens);
+  const notification = {
+    title: 'Notification',
+    body: 'Warning: There is a 60% chance of fires in agricultural areas of Hurghada due to increased dust. The risk is higher in arid regions. Please take necessary precautions.',
+  };
   
   try {
     if(!tokens){
@@ -658,48 +560,11 @@ exports.receiveEnvironmentDanger = async (req,res,next) => {
       error.statusCode = 401;
       throw error;
     }
-
-    // for(let i in tokens){
-    //   tokenArray[i] = tokens[i].FCMToken;
-    // }
-    // console.log(tokenArray);
     
-    
-    function sendNotification(message){
-      let clientServerOptions = {
-        uri: 'https://fcm.googleapis.com/fcm/send',
-        method: 'POST',
-        body: JSON.stringify(message),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'key=AAAAEx2Gzqo:APA91bGNeVCLxP6iKFra3Ttit3X_OI53TM3Xr3mcdhThq0dM7O5AUkdy4d0vzFHnanrQeOh5vlsPA52w-8JObkQwhtDQw47NCNaYKXF8-DFf65H42MUaYjc5PehWcMWmVpMR0R70DkMK'
-        }
-      }
-      request(clientServerOptions, function(error,res){
-        console.log(error, res.body, new Date(Date.now()).toLocaleTimeString());
-      });
-    }
-
     for(let i in tokens){
-      let notify = {
-        to: tokens[i].FCMToken,
-        notification: {
-          title: "Notification",
-          body: "A fire is expected to break out with a 90% probability in the village of Damlu due to high temperatures and escaping smoke."
-        },
-      };
-      sendNotification(notify);
+      sendFcmNotification(tokens[i].FCMToken, notification);
     }
     
-    
-    // const sensorData = new SensorData({
-    //   data: temperature,
-    //   timestamp: Date.now(),
-    //   sensorId: id,
-    //   description: "Environment sensor monitor natural disasters.",
-    //   helperText: "Seek Safe Place Immediately."
-    // });
-    // await sensorData.save();
     res.status(200).json({
       message: "received data from Environment sensor"
     })
