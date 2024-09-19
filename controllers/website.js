@@ -300,7 +300,7 @@ exports.getSensorData = async (req,res,next) => {
   const sensorId = req.body.sensorId;
   // const sensor = await UserSensors.findOne({ sensorId: sensorId });
   try{
-    const allData = await SensorData.find({sensorId : sensorId }).select("sensorId timestamp data description helperText -_id - __v");
+    const allData = await SensorData.find({sensorId : sensorId }).select("sensorId timestamp data description helperText -_id");
     const userOfSensor = await UserSensors.findOne({sensorId: sensorId});
   if(!allData){
     const error = new Error('A sensor with this ID could not be found');
