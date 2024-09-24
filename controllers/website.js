@@ -4,6 +4,7 @@ const SensorData = require('../models/sensorData');
 const userSensors = require('../models/userSensors');
 const axios = require('axios');
 const { google } = require('googleapis');
+const mqtt = require('mqtt');
 require("dotenv").config();
 // const serviceAccount = require('../group-of-rest-end-point-firebase-adminsdk-4gqsv-a086f6a0b2.json');
 
@@ -62,6 +63,15 @@ async function saveData(description, helperText, data, id, usersensor){
   await usersensor.save();
   await sensorData.save();
 }
+
+const client = mqtt.connect("mqtt://localhost");
+client.on('connect', () => {
+  console.log('Connected to MQTT broker');
+});
+
+client.on('error', (error) => {
+  console.error('Error:', error);
+});
 
 
 exports.getHomefriends = async (req, res, next) => {
@@ -456,6 +466,12 @@ exports.receiveCameraSensor = async (req,res,next) => {
   };
   sendFcmNotification(deviceToken, notification);
   saveData(description, helperText, data, id, usersensor);
+  client.publish("buzzer/control", "Send Buzz", (err) => {
+    if (err) {
+      console.error('Failed to publish MQTT message:', err);
+    }
+    console.log(`Published buzz notification.`);
+  });
   res.status(200).json({
     message: "received data from camera"
   });
@@ -526,8 +542,14 @@ exports.receiveHealthSensor = async (req,res,next) => {
     for(let j in receipentTokens){
       sendFcmNotification(receipentTokens[j], friendNotification);
     }
-    saveData(description, helperText, value, id, usersensor)
-    
+    saveData(description, helperText, value, id, usersensor);
+    client.publish("buzzer/control", "Send Buzz", (err) => {
+      if (err) {
+        console.error('Failed to publish MQTT message:', err);
+      }
+      console.log(`Published buzz notification.`);
+    });
+
     res.status(200).json({
       message: "received data from health sensor"
     })

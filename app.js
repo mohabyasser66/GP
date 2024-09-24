@@ -19,6 +19,7 @@ const websiteRoutes = require('./routes/website');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+
 app.use( (req,res,next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE');
@@ -30,8 +31,6 @@ app.use( (req,res,next) => {
 app.use(authRoutes);
 app.use(websiteRoutes);
 // app.use(adminRoutes);
-
-//hahahahahahahahahaha
 
 app.use( (err,req,res,next) => {
     console.log(err);
