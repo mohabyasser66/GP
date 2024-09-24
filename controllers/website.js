@@ -466,7 +466,7 @@ exports.receiveCameraSensor = async (req,res,next) => {
   };
   sendFcmNotification(deviceToken, notification);
   saveData(description, helperText, data, id, usersensor);
-  client.publish("buzzer/control", "Send Buzz", (err) => {
+  client.publish("buzzer/control", "Activate Buzzer", (err) => {
     if (err) {
       console.error('Failed to publish MQTT message:', err);
     }
@@ -543,7 +543,7 @@ exports.receiveHealthSensor = async (req,res,next) => {
       sendFcmNotification(receipentTokens[j], friendNotification);
     }
     saveData(description, helperText, value, id, usersensor);
-    client.publish("buzzer/control", "Send Buzz", (err) => {
+    client.publish("buzzer/control", "Activate Buzzer", (err) => {
       if (err) {
         console.error('Failed to publish MQTT message:', err);
       }
